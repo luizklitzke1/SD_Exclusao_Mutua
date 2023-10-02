@@ -1,0 +1,3 @@
+﻿  ThreadHelper.cpp
+C:\Users\luizk\OneDrive\Documentos\sd 2\SD_Algoritmo_Exclusao_Mutua\SD_Algoritmo_Exclusao_Mutua\ThreadHelper.cpp(11,12): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+  SD_Algoritmo_Exclusao_Mutua.vcxproj -> C:\Users\luizk\OneDrive\Documentos\sd 2\SD_Algoritmo_Exclusao_Mutua\x64\Debug\SD_Algoritmo_Exclusao_Mutua.exe
