@@ -12,7 +12,7 @@ void CThreadHelper::CreateNewProcess(CBully& bully)
 
 	while (true)
 	{
-		std::this_thread::sleep_for(std::chrono::seconds(30));
+		std::this_thread::sleep_for(std::chrono::seconds(40));
 		printf("\n40 segundos - CRIAÇÃO DO NOVO PROCESSO\n");
 
 		int Id = rand() % INT_MAX + 1; // in the range 1 to 2147483647
@@ -45,6 +45,11 @@ void CThreadHelper::CreateNewProcess(CBully& bully)
 		}
 
 		printf("Processos: %s\n\n", showProcesses.c_str());
+
+		bully.doElection(newProcess);
+
+		std::thread thRequestRecurso(&CProcesso::MandaRequestRecurso, newProcess);
+		thRequestRecurso.detach();
 	}
 }
 
@@ -62,7 +67,8 @@ void CThreadHelper::InactiveCoordenador(CBully& bully)
 		}
 		
 		bully.m_pCoordenador->SetIsActive(false);
-		printf("Coordenador %d inativo!\n\n", bully.m_pCoordenador->GetId());
+		printf("Coordenador %d inativo!\n", bully.m_pCoordenador->GetId());
+		printf("Fila de processos limpa!\n\n");
 
 		bully.doElection(bully.GetRandomProcess());
 	}

@@ -10,12 +10,12 @@ void CRequest::SetProcesso(CProcesso* pProcesso)
 	m_pProcesso = pProcesso;
 }
 
-int CRequest::GetIdRecurso() const
+std::shared_ptr<CRecurso> CRequest::GetRecurso() const
 {
-	return m_IdRecurso;
+	return m_pRecurso;
 }
 
-void CRequest::SetIdRecurso(int iRecurso)
+void CRequest::SetRecurso(std::shared_ptr<CRecurso> recurso)
 {
-	m_IdRecurso = iRecurso;
+	m_pRecurso = recurso;
 }

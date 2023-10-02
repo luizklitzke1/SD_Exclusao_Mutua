@@ -1,3 +1,7 @@
-﻿  ThreadHelper.cpp
-C:\Users\luizk\OneDrive\Documentos\sd 2\SD_Algoritmo_Exclusao_Mutua\SD_Algoritmo_Exclusao_Mutua\ThreadHelper.cpp(11,12): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+﻿  Bully.cpp
+C:\Users\luizk\OneDrive\Documentos\sd 2\SD_Algoritmo_Exclusao_Mutua\SD_Algoritmo_Exclusao_Mutua\Bully.cpp(57,71): warning C4267: 'argument': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=int
+          ]
   SD_Algoritmo_Exclusao_Mutua.vcxproj -> C:\Users\luizk\OneDrive\Documentos\sd 2\SD_Algoritmo_Exclusao_Mutua\x64\Debug\SD_Algoritmo_Exclusao_Mutua.exe

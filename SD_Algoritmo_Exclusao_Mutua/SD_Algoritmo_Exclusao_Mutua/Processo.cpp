@@ -3,20 +3,18 @@
 #include <format>
 #include <functional>
 #include "Processo.h"
+#include "Bully.h"
 
 const int MIN_TIME_REQUEST = 10;
 const int MAX_TIME_REQUEST = 25;
 
-const int MIN_TIME_PROCESS = 5 ;
+const int MIN_TIME_PROCESS = 5;
 const int MAX_TIME_PROCESS = 15;
 
 CProcesso::CProcesso(int id) 
-    : m_listIdRecursos(nullptr)
+    : m_listRecursos(nullptr)
 {
     m_iId = id;
-
-    std::thread thRequestRecurso(&CProcesso::MandaRequestRecurso, std::ref(*this));
-    thRequestRecurso.join();
 }
 
 CProcesso::~CProcesso()
@@ -60,20 +58,28 @@ void CProcesso::SetCoordenador(std::shared_ptr<CProcesso> coordenador)
 
 void CProcesso::MandaRequestRecurso()
 {
-    while (true)
+    while (GetIsActive())
     {
         //os processos tentam consumir o(s) recurso(s) num intervalo de 10 a 25 segundos
-        std::this_thread::sleep_for(std::chrono::seconds(rand() % (MAX_TIME_REQUEST - MIN_TIME_REQUEST + 1) + MIN_TIME_REQUEST));
+        int iSegundosEspera = rand() % (MAX_TIME_REQUEST - MIN_TIME_REQUEST + 1) + MIN_TIME_REQUEST;
+        std::this_thread::sleep_for(std::chrono::seconds(iSegundosEspera));
+
+        if (GetIsActive() == false)
+            break;
 
         CRequest request;
         request.SetProcesso(this);
-        request.SetIdRecurso(GetCoordenador()->GetIdRecursoAleatorio());
+        request.SetRecurso(GetCoordenador()->GetRecursoAleatorio());
+
+        std::string sMensagemRequest = std::format("[REQUEST] Processo {}, requisitou o recurso {} apos {} segundos\n", GetId(), request.GetRecurso()->GetId(), iSegundosEspera);
+        printf(sMensagemRequest.c_str());
         
-        GetCoordenador()->RequisitaRecurso(request);
+        std::thread thRequest(&CProcesso::RequisitaRecurso, GetCoordenador(), request);
+        thRequest.detach();
     }
 }
 
-void CProcesso::ConsomeRecurso(int iRecurso)
+void CProcesso::ConsomeRecurso(std::shared_ptr<CRecurso> recurso)
 {
     int iSegundosConsumo = rand() % (MAX_TIME_PROCESS - MIN_TIME_PROCESS + 1) + MIN_TIME_PROCESS;
     //o tempo de processamento de um recurso é de 5 a 15 segundos
@@ -81,17 +87,17 @@ void CProcesso::ConsomeRecurso(int iRecurso)
 
     CRequest requestLiberacao;
     requestLiberacao.SetProcesso (this);
-    requestLiberacao.SetIdRecurso(iRecurso);
+    requestLiberacao.SetRecurso(recurso);
 
-    std::string sMensagemRequestLiberacao = std::format("Recurso {}, consumido pelo processo {} durante {} segundos\n", iRecurso, GetId(), iSegundosConsumo);
+    std::string sMensagemRequestLiberacao = std::format("[CONSUMIDO] Recurso {}, consumido pelo processo {} durante {} segundos\n", recurso->GetId(), GetId(), iSegundosConsumo);
     printf(sMensagemRequestLiberacao.c_str());
 
     GetCoordenador()->LiberaRecurso(requestLiberacao);
 }
 
-void CProcesso::SetListaRecursos(std::vector<int>* listaRecursos)
+void CProcesso::SetListaRecursos(std::vector<std::shared_ptr<CRecurso>>* listaRecursos)
 {
-    m_listIdRecursos = listaRecursos;
+    m_listRecursos = listaRecursos;
 }
 
 void CProcesso::RequisitaRecurso(const CRequest& request)
@@ -99,20 +105,18 @@ void CProcesso::RequisitaRecurso(const CRequest& request)
     if (GetIsCoordenador() == false)
         return;
 
-    std::string sMensagemRequest = std::format("Requisição do recursos de Id {}, feita pelo processo de Id {}\n", request.GetIdRecurso(), request.GetProcesso()->GetId());
-    printf(sMensagemRequest.c_str());
-
-    if (m_mapFilasRecursos[request.GetIdRecurso()].size())
+    if (m_mapFilasRecursos[request.GetRecurso()->GetId()].size() || request.GetRecurso()->GetIsInUse())
     {
-        m_mapFilasRecursos[request.GetIdRecurso()].push(request);
+        m_mapFilasRecursos[request.GetRecurso()->GetId()].push(request);
 
-        std::string sAvisoFila = std::format("Adicionada request do processo {} na fila do recurso {}\n", request.GetProcesso()->GetId(), request.GetIdRecurso());
+        std::string sAvisoFila = std::format("[FILA] Adicionada request do processo {} na fila do recurso {}\n\n", request.GetProcesso()->GetId(), request.GetRecurso()->GetId());
         printf(sAvisoFila.c_str());
 
         return;
     }
 
-    request.GetProcesso()->ConsomeRecurso(request.GetIdRecurso());
+    request.GetRecurso()->SetIsInUse(true);
+    request.GetProcesso()->ConsomeRecurso(request.GetRecurso());
 
     return;
 }
@@ -122,10 +126,12 @@ void CProcesso::LiberaRecurso(const CRequest& request)
     if (GetIsCoordenador() == false)
         return;
 
-    if (m_mapFilasRecursos.find(request.GetIdRecurso()) == m_mapFilasRecursos.end())
+    request.GetRecurso()->SetIsInUse(false);
+
+    if (m_mapFilasRecursos.find(request.GetRecurso()->GetId()) == m_mapFilasRecursos.end())
         return; // Nunca teve a fila
 
-    auto& itFilaRecurso = m_mapFilasRecursos[request.GetIdRecurso()];
+    auto& itFilaRecurso = m_mapFilasRecursos[request.GetRecurso()->GetId()];
 
     if (itFilaRecurso.size() == 0)
         return; //Ninguem na fila
@@ -138,25 +144,27 @@ void CProcesso::LiberaRecurso(const CRequest& request)
         if (requestNaFila.GetProcesso()->GetIsActive() == false)
             continue;
 
-        //todo
-        std::thread threadConsome(&CProcesso::ConsomeRecurso, requestNaFila.GetProcesso(), request.GetIdRecurso());
+        std::string sAvisoFila = std::format("[LIBERADO] Liberado consumo do Recurso {} para o processo {}\n\n", request.GetRecurso()->GetId(), request.GetProcesso()->GetId());
+        printf(sAvisoFila.c_str());
+
+        std::thread threadConsome(&CProcesso::ConsomeRecurso, requestNaFila.GetProcesso(), request.GetRecurso());
         threadConsome.join();
 
         break;
     }
 }
 
-int CProcesso::GetIdRecursoAleatorio()
+std::shared_ptr<CRecurso> CProcesso::GetRecursoAleatorio()
 {
     if (GetIsCoordenador() == false)
         return 0;
 
-    if (m_listIdRecursos->size() == 0)
+    if (m_listRecursos->size() == 0)
         return 0;
 
     std::random_device rd;
     std::mt19937       gen(rd());
 
-    std::uniform_int_distribution<> dis(0, m_listIdRecursos->size() - 1);
-    return m_listIdRecursos->at(dis(gen));
+    std::uniform_int_distribution<> dis(0, m_listRecursos->size() - 1);
+    return m_listRecursos->at(dis(gen));
 }

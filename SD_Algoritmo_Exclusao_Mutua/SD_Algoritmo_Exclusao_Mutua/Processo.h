@@ -4,6 +4,7 @@
 #include <queue>
 #include <unordered_map>
 
+class CBully;
 class CProcesso
 {
 public:
@@ -22,15 +23,15 @@ public:
     void SetCoordenador(std::shared_ptr<CProcesso> coordenador);
 
     void MandaRequestRecurso();
-    void ConsomeRecurso(int iRecurso);
+    void ConsomeRecurso(std::shared_ptr<CRecurso> recurso);
 
-    void SetListaRecursos(std::vector<int>* listaRecursos);
+    void SetListaRecursos(std::vector<std::shared_ptr<CRecurso>>* listaRecursos);
 
     //Funções para coordenador
     void RequisitaRecurso(const CRequest& request);
     void LiberaRecurso   (const CRequest& request);
 
-    int GetIdRecursoAleatorio();
+    std::shared_ptr<CRecurso> GetRecursoAleatorio();
 
 private:
     unsigned long m_iId = 0;
@@ -38,9 +39,10 @@ private:
     bool m_bIsActive      = true;
     bool m_bIsCoordenador = false;
 
+    CBully* m_pBully = nullptr;
     std::shared_ptr<CProcesso> m_pCoordenador = nullptr;
 
     //Dados para coordenador
-    std::vector<int>* m_listIdRecursos;
+    std::vector<std::shared_ptr<CRecurso>>* m_listRecursos;
     std::unordered_map<int, std::queue<CRequest>> m_mapFilasRecursos;
 };

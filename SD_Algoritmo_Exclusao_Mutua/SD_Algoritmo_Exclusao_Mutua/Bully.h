@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "Processo.h"
+#include "Recurso.h"
 
 class CBully
 {
@@ -17,5 +18,5 @@ public:
     std::shared_ptr<CProcesso> m_pCoordenador;
 
     std::vector<std::shared_ptr<CProcesso>> m_listProcessos;
-    std::vector<int> m_listIdRecursos;
+    std::vector< std::shared_ptr<CRecurso>> m_listRecursos;
 };

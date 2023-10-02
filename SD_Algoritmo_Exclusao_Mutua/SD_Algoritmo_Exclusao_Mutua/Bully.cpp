@@ -9,9 +9,20 @@ CBully::CBully()
     isInElection = false;
 
     //Cria alguns recursos para teste
-    m_listIdRecursos.push_back(1);
-    m_listIdRecursos.push_back(10);
-    m_listIdRecursos.push_back(22);
+    CRecurso recursoDummy1;
+    recursoDummy1.SetId(1);
+    recursoDummy1.SetIsInUse(false);
+    m_listRecursos.push_back(std::make_shared<CRecurso>(recursoDummy1));
+
+    //CRecurso recursoDummy2;
+    //recursoDummy2.SetId(31);
+    //recursoDummy2.SetIsInUse(false);
+    //m_listRecursos.push_back(std::make_shared<CRecurso>(recursoDummy2));
+    //
+    //CRecurso recursoDummy3;
+    //recursoDummy3.SetId(55);
+    //recursoDummy3.SetIsInUse(false);
+    //m_listRecursos.push_back(std::make_shared<CRecurso>(recursoDummy3));
 }
 
 CBully::~CBully()
@@ -35,8 +46,8 @@ void CBully::main()
 
 std::shared_ptr<CProcesso> CBully::GetRandomProcess()
 {
-    if (m_listProcessos.size() <= 0)
-        return nullptr;
+    if (m_listProcessos.size() <= 0 || (m_listProcessos.size() == 1 && m_listProcessos.at(0)->GetIsActive() == false))
+        return std::shared_ptr<CProcesso>(nullptr);
 
     while (true)
     {
@@ -52,9 +63,9 @@ std::shared_ptr<CProcesso> CBully::GetRandomProcess()
 
 void CBully::doElection(std::shared_ptr<CProcesso> process)
 {
-    if (process == nullptr)
+    if (process == nullptr || (m_pCoordenador != nullptr && m_pCoordenador->GetIsActive()))
         return;
-
+    
     isInElection = true;
     std::shared_ptr<CProcesso> newCoordenador = process;
     bool callNewElection = false;
@@ -80,7 +91,7 @@ void CBully::doElection(std::shared_ptr<CProcesso> process)
 
     m_pCoordenador = newCoordenador;
     m_pCoordenador->SetIsCoordenador(true);
-    m_pCoordenador->SetListaRecursos(&m_listIdRecursos);
+    m_pCoordenador->SetListaRecursos(&m_listRecursos);
     printf("Novo coordenador: %d\n\n", m_pCoordenador->GetId());
 
     for (auto& itProcess : m_listProcessos)

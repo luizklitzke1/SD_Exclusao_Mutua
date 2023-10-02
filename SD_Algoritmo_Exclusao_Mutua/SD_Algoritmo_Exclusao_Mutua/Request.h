@@ -2,17 +2,19 @@
 #include <memory>
 
 class CProcesso;
+class CRecurso;
+
 class CRequest
 {
 public:
 	CProcesso* GetProcesso() const;
 	void SetProcesso(CProcesso* pProcesso);
 
-	int GetIdRecurso() const;
-	void SetIdRecurso(int iRecurso);
+	std::shared_ptr<CRecurso> GetRecurso() const;
+	void SetRecurso(std::shared_ptr<CRecurso> recurso);
 	
 private:
 	CProcesso* m_pProcesso;
-	int m_IdRecurso ;
+	std::shared_ptr<CRecurso> m_pRecurso ;
 };
 

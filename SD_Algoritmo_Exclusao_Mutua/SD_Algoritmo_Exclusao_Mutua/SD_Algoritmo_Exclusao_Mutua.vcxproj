@@ -131,11 +131,13 @@
     <ClCompile Include="Bully.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Processo.cpp" />
+    <ClCompile Include="Recurso.cpp" />
     <ClCompile Include="Request.cpp" />
     <ClCompile Include="ThreadHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bully.h" />
+    <ClInclude Include="Recurso.h" />
     <ClInclude Include="Processo.h" />
     <ClInclude Include="Request.h" />
     <ClInclude Include="ThreadHelper.h" />
